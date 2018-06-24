@@ -8,4 +8,4 @@ Linear algebra(Inverse, Eigenvalues, etc.)
 Data Acquisition and Management
 
 
-* More R programs can be found: http://rpubs.com/jiadi_li
+* More R programs (unorganized) can be found: http://rpubs.com/jiadi_li
