@@ -28,16 +28,16 @@ Data Cleaning and Tidying, Data Management, Classification
 http://rpubs.com/jiadi_li/MarkovRandomWalk
 
 Markov Chain & Random Walks:Gambler’s Ruin
-<br/>
+<br/><br/>
 
 http://rpubs.com/jiadi_li/CLTMGF
 
 Central Limit Theorem & Moment Generating Function
-<br/>
+<br/><br/>
 
 http://rpubs.com/jiadi_li/MatrixTransposeLUDecomposition
 
 Matrix Transpose & LU Decomposition
-<br/>
+<br/><br/>
 
 * More R programs (unorganized) can be found: http://rpubs.com/jiadi_li
