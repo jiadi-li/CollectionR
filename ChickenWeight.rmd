@@ -1,0 +1,126 @@
+#Multiple Regression Model
+
+This dataset is built in R datasets v3.4.3.    
+
+**load data**    
+
+```{r}
+head(ChickWeight)
+
+summary(ChickWeight)
+```    
+This data is primarily used for determining how did the four experimental diet received by chickens affect the weight of chikens.   
+There are four variables in this dataset including: chick  & diet are categorical variable, time & weight are continuous variable.    
+Since the chick variable is an ordered label of final weight within each group, it's not useful in predicting weights.  
+
+**Observation**      
+
+```{r}
+plot(ChickWeight$Time,ChickWeight$weight,xlab = 'time',ylab = 'weight')
+cor(ChickWeight$weight,ChickWeight$Time)
+```
+    
+weight and time variables are highly correlated with a coefficient of 0.8371, the plot also shows a clear trend. However, as time passed, the variation in weights between chicks becomes wider which makes the experiment of diet worth exploring.   
+    
+```{r}
+plot(ChickWeight$weight~ChickWeight$Diet,xlab = 'diet',ylab = 'weight')
+
+hist(ChickWeight$weight[ChickWeight$Diet=='1'],breaks = 30,main = 'Histogram: Weight for Diet 1')
+hist(ChickWeight$weight[ChickWeight$Diet=='2'],breaks = 30,main = 'Histogram: Weight for Diet 2')
+hist(ChickWeight$weight[ChickWeight$Diet=='3'],breaks = 30,main = 'Histogram: Weight for Diet 3')
+hist(ChickWeight$weight[ChickWeight$Diet=='4'],breaks = 30,main = 'Histogram: Weight for Diet 4')
+```
+    
+This categorical variable shows that weight distribution of all diet are skewed to the left. Diet 3 leads to highest weight but interquantile range of weights of all four diets are approximately the same. Further exploration will be neccessary.    
+    
+```{r}
+plot(ChickWeight$weight~ChickWeight$Chick,xlab = 'ordered label by weight within the same diet',ylab = 'weight')
+```     
+      
+As mentioned earlier, chick variable is a label created based on the final weight of all chicks. In this case, it would not be worth considering in the linear model since all information were included in the other two variables.           
+    
+
+**Linear Model**     
+
+model 0 -  all data included: this model ishould not be considered predictive since the chick variable includes final result of weight.   
+```{r}
+m0 <- lm(weight ~ .,data = ChickWeight)
+summary(m0)
+```  
+    
+model 1 - Time & Diet: this model is not bad given the standard error of most variables are within 5-10 times the estimate and the p-value of all variables shows that all the factors are considered significant.  
+```{r}
+m1 <- lm(weight ~ Time + Diet,data = ChickWeight)
+summary(m1)
+```  
+    
+model 2 - adding a quadratic term (Time$^2$): this model has similar advantage has the previous one. Moreover, the p-values this time are even smaller, which make the variables more significant in predicting weight. R-square also increases, but it doesn't neccessarily garentee that the model is better.    
+```{r}
+ChickWeight2 <- ChickWeight
+ChickWeight2$Time2 <- ChickWeight$Time*ChickWeight$Time
+
+m2 <- lm(weight ~ Time + Diet + Time2, data = ChickWeight2)
+summary(m2)
+```  
+   
+model 3 -  interaction between a quadratic term (Time$^2$) and a categorical term (Diet): This model has minor improvement in residual standard error and R-square. 
+```{r}
+m3 <- lm(weight ~ Time + Diet + Time2*Diet, data = ChickWeight2)
+summary(m3)
+```  
+    
+model 4 - interaction between a quadratic term (Time$^2$) and a dichotomous term (Dt): while separating diet into 4 categories is neccessary for determining which diet recipe leads to highest weight, creating a model to predict weight doesn't neccessarily require this separation. Given the difference in weight as a result of diet 1,2 and diet 3,4 (shown below as boxplot), I'll try to separate them into Dt A and B.   
+The improvement of this model is that both ends of the residuals are becoming more symmetrical. Other than that, no obvious improvement was observed.   
+```{r}
+ChickWeight4 <- ChickWeight2
+ChickWeight4$Dt[ChickWeight4$Diet == '1' | ChickWeight4$Diet == '2'] <- 'A'
+ChickWeight4$Dt[ChickWeight4$Diet == '3' | ChickWeight4$Diet == '4'] <- 'B'
+
+boxplot(ChickWeight4$weight~ChickWeight4$Dt)
+
+m4 <- lm(weight ~ Time + Diet + Time2 * Dt, data = ChickWeight4)
+summary(m4)
+```     
+
+**Residual Analysis**     
+
+```{r}
+hist(m0$residuals,main = 'Histogram: Residual of Model 0') #nearly normal residuals
+
+qqnorm(m0$residuals) #normal probability plot of the residuals
+qqline(m0$residuals) #adds diagonal line to the normal prob plot
+```  
+
+```{r}
+hist(m1$residuals,main = 'Histogram: Residual of Model 1')
+
+qqnorm(m1$residuals) #normal probability plot of the residuals
+qqline(m1$residuals) #adds diagonal line to the normal prob plot
+```  
+
+```{r}
+hist(m2$residuals,main = 'Histogram: Residual of Model 2')
+
+qqnorm(m2$residuals) #normal probability plot of the residuals
+qqline(m2$residuals) #adds diagonal line to the normal prob plot
+```  
+
+```{r}
+hist(m3$residuals,main = 'Histogram: Residual of Model 3') 
+
+qqnorm(m3$residuals) #normal probability plot of the residuals
+qqline(m3$residuals) #adds diagonal line to the normal prob plot
+```  
+
+```{r}
+hist(m4$residuals,main = 'Histogram: Residual of Model 4')
+
+qqnorm(m4$residuals) #normal probability plot of the residuals
+qqline(m4$residuals) #adds diagonal line to the normal prob plot
+```  
+
+**Conclusion**  
+
+While indicator and QQ-plot of model 0 performs better than the other 4 models, the model might not be as pragmatic as the others when we are trying to predict the weights using the model.  
+The QQ-plots of Model 1-4 show that both ends of the graph don't align with the base line. If the best model has to be chosen, I will pick either model 1 or 2. Else, I would consider all four models unsatisfying and choose to do further investigation (probably more data and/or another type of model) for this dataset.   
+
