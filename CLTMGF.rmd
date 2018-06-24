@@ -1,0 +1,75 @@
+####Central Limit Theorem & Generating Functions
+
+The price of one share of stock in the Pilsdorff Beer Company is given by $Y_n$ on the $n$th day of the year. Finn observes that the differences $X_n = Y_{n+1}-Y_n$ appear to be independent random variables with a common distribution having mean $\mu$ = 0 and variance $\sigma^2$ = 1/4. If $Y_1$ = 100, estimate the probability that $Y_{365}$ is  
+
+$Y_{365}-Y_1$ = $(Y_{365}-Y_{364})+(Y_{364}-Y_{363})+(Y_{363}-Y_{362})+...(Y_2-Y_1)$ = $X_{364} + X_{363} + X_{362} +...+X_1$ = $\sum_{i=1}^{364}X_i$ = $S_{364}$  <br/>
+```{r}
+n <- 364
+```
+
+$E[Y_{365}] = E[S_{364}] = n\mu = 364 \times 0 = 0$   <br/>
+```{r}
+mu <- 0
+```
+
+$Var(Y_{365})= Var(S_{364}) = n\sigma^2=364\times \frac{1}{4} = 91$  
+```{r}
+std <- sqrt(n*1/4)
+```
+
+(a) $\ge 100$.<br/>
+
+$P(Y_{365}\ge 100)\Rightarrow P(Y_{365}-100\ge 100-100)=P(Y_{365}-Y_1\ge 0)=P(S_{364}\ge 0)$   
+```{r}
+diff <- 0
+1-pnorm(q=diff,mean=mu,sd=std)
+```
+
+(b) $\ge 110$.  <br/>
+
+$P(Y_{365}\ge 110)\Rightarrow P(Y_{365}-100\ge 110-100)=P(Y_{365}-Y_1\ge 10)=P(S_{364}\ge 10)$   
+```{r}
+diff <- 10
+1-pnorm(q=diff,mean=mu,sd=std)
+```
+
+(c) $\ge 120$.  <br/>
+
+$P(Y_{365}\ge 120)\Rightarrow P(Y_{365}-100\ge 120-100)=P(Y_{365}-Y_1\ge 20)=P(S_{364}\ge 20)$   
+```{r}
+diff <- 20
+1-pnorm(q=diff,mean=mu,sd=std)
+```
+
+
+####Moment generating function: binomial distribution
+Calculate the expected value and variance of the binomial distribution using the moment generating function.  <br/>
+
+Binomial distribution: $p_X(j) = (_j^n)p^jq^{n-j}$ for $0\le j\le n$<br/><br/>
+
+$g(t)$ = $E[e^{tx}]$ = $\sum_{j=0}^{n}e^{tj} {n\choose j} p^jq^{n-j}$ = $\sum_{j=0}^{n}{n\choose j}(pe^t)^jq^{n-j}$  <br/><br/>
+
+Binomial theorem: $(x+y)^n=\sum_{k=0}^{n}{n\choose k}x^{n-k}y^k \space \Rightarrow$  $g(t)$ = $(pe^t+q)^n$  <br/><br/>
+
+$g'(t)$ = $n(pe^t+q)^{n-1}pe^t$  <br/><br/>
+$g''(t)$ = $n(n-1)(pe^t+q)^{n-2}(pe^t)^2+n(pe^t+q)^{n-1}pe^t$  <br/><br/>
+
+$E[X]$ = $g'(0)$ = $n(p+q)^{n-1}p$=$np$  <br/><br/>
+$Var(X)$ = $E[X^2]-E[X]^2$ = $g''(0)-(g'(0))^2$=$n(n-1)p^2+np-(np)^2$ = $np(1-p)$    <br/><br/><br/>
+
+
+####Moment generating function: exponential distribution
+Calculate the expected value and variance of the exponential distribution using the moment generating function.  <br/>
+
+Exponential distribution: $f(x) = \lambda e^{-\lambda x}$ for $x\ge 0$<br/><br/>
+
+$g(t)$ = $E[e^{tx}]$ = $\int_0^\infty e^{tx}\lambda e^{-\lambda x}dx$ = $\lambda \int_0^\infty e^{(t-\lambda)x}dx$ = $\lambda \frac{1}{t-\lambda}e^{(t-\lambda)x}]_{x=0}^{x\rightarrow\infty}$ = $\frac{\lambda}{t-\lambda}[\lim_{x\to \infty} e^{(t-\lambda)x}-1]$  <br/>
+
+$\because |t|<\lambda,\space\space \therefore \lim_{x\to\infty}e^{(t-\lambda)x}=0$  <br/>  
+$g(t)$ = $\frac{\lambda}{\lambda-t}$  <br/>
+
+$g'(t)$ = $\frac{\lambda}{(\lambda-t)^2}$  
+$g''(t)$ = $\frac{2\lambda}{(\lambda-t)^3}$  <br/>
+
+$E[X]$ = $g'(0)$ = $\frac{\lambda}{\lambda ^2}$ = $\frac{1}{\lambda}$  <br/>
+$Var(X)$ = $g''(0)-(g'(0))^2$ = $\frac{2\lambda}{\lambda ^3}-\frac{1}{\lambda^2}$ = $\frac{1}{\lambda^2}$

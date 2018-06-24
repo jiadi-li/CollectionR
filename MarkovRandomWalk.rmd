@@ -1,0 +1,64 @@
+###Markov Chain & Random Walks:Gambler's Ruin
+
+**Smith is in jail and has 1 dollar; he can get out on bail if he has 8 dollars. A guard agrees to make a series of bets with him.**     
+**If Smith bets A dollars, he wins A dollars with probability 0.4 and loses A dollars with probability 0.6.**    
+
+For the general discription of the Gambler's Ruin Problem, a gambler starts with a "stake" of size s. She plays until her capital reaches the vakue M or the value 0. Assuming the gambler is playing against an "infinitely rich" adversary, so that there is only one absorbing state, when the gambler's stake is 0. Under this assumption, we define $q_k$ to be the probability the probability that the gambler is ruined before it reaches M, given that the initial stake is $k$.  
+
+We note that $q_0$ = 1 and $q_M$ = 0. (For this question, M = 8 and $q_M$ = 0)
+
+When $p$ and $q$ are non-negative real numbers with $p+q=1$, and that the common distribution function of the jumps of the ramdom walk is  
+$f_{X}(x)=\begin{cases}p & if\space x=1\\q & if\space x=-1\end{cases}$ where $p=0.4$ and $q=0.6$  
+
+The fundamental relationship among the $q_k$'s is:  
+$q_k = pq_{k+1} + qq_{k-1}$ where 1$\le k \le M$ - 1  
+
+Find the probability that he wins 8 dollars before losing all of his money if  
+
+**(a) he bets 1 dollar each time (timid strategy).**  
+
+Based on the equation for $q_k$ above $\Rightarrow$  
+
+for 0 $\le z \le M$, the quantity $p_z$ is defined as the probability that the gambler's stake reaches $M$ withought ever having reached 0:  
+
+$q_z = \frac{(q/p)^z-1}{(q/p)^M-1}$
+```{r}
+p <- 0.4
+q <- 0.6
+M <- 8
+z <- 1
+
+result_timid <- ((q/p)^z-1)/((q/p)^M-1)
+
+result_timid
+```
+  
+**(b) he bets, each time, as much as possible but not more than necessary to bring his fortune up to 8 dollars (bold strategy).**     
+
+For this strategy, based on the fundamental relationship:  
+$q_k = pq_{k+1} + qq_{k-1}$ where $q_k$ is the probability tha the chain reaches state 8 before reaching state 0     
+
+starting from state 1, we can reach either state 2 (with $p$=0.4) and state 0 (with $q$=0.6). Then for state 2, we can reach either state 4 (with $p$=0.4) and state 0 (with $q$=0.6) and so on:  
+
+$q_0 = 0$  
+$q_1 = 0.4(q_2)+0.6(q_0)$  
+$q_2 = 0.4(q_4)+0.6(q_0)$  
+$q_4 = 0.4(q_8)+0.6(q_0)$  
+$q_8 = 1$  
+```{r}
+q_0 <- 0
+q_8 <- 1
+
+q_4 <- 0.4*(q_8)+0.6*(q_0)
+q_2 <- 0.4*(q_4)+0.6*(q_0)
+result_bold <- 0.4*(q_2)+0.6*(q_0)
+
+result_bold
+```
+  
+**(c) Which strategy gives Smith the better chance of getting out of jail?**    
+```{r}
+result_bold > result_timid
+```
+
+Since bold stategy gives Smith the better chance of getting out of jail than the timid strategy, he should choose bold strategy.  

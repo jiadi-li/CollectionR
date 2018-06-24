@@ -1,0 +1,72 @@
+####Transpose
+
+1.Show that A$^{T}$A $\neq$ AA$^{T}$
+
+For any given m$\times$n matrix A, A$^{T}$ is a n$\times$m matrix where each element a$_{ij}$ in A$^{T}$ is equal to a$_{ji}$ in matrix A.
+
+A = $\begin{bmatrix}a_{11} & a_{12} & a_{13}\\a_{21} & a_{22} & a_{23}\\a_{31} & a_{32} & a_{33}\end{bmatrix}$
+and A$^{T}$ = $\begin{bmatrix}a_{11} & a_{21} & a_{31}\\a_{12} & a_{22} & a_{32}\\a_{13} & a_{23} & a_{33}\end{bmatrix}$
+
+$\because$ All elements in A$^{T}$ don't eaqual to corresponding elements in A except elements on the diagonal. 
+$\therefore$ A$\neq$A$^{T}$
+
+Based on Properties of matrix multiplication,
+$\because$ AB$\neq$BA for any given matrix A, B where A$\neq$B
+$\therefore$ A$^{T}$A $\neq$ AA$^{T}$<br/><br/>
+
+2.For a special type of square matrix A, we get A$^{T}$A = AA$^{T}$. Under what conditions could this be true?  
+
+To satisfy A$^{T}$A = AA$^{T}$, A must satisfy A = A$^{T}$ so that AA$^{T}$ = AA = A$^{T}$A$^{T}$ = A$^{T}$A
+and therefore, for each a$_{ij}$ in A must equal to a$_{ji}$.
+
+For example:  
+A = $\begin{bmatrix}1 & 2 & 3\\2 & 1 & 4\\3 & 4 & 1\end{bmatrix}$
+and A$^{T}$ = $\begin{bmatrix}1 & 2 & 3\\2 & 1 & 4\\3 & 4 & 1\end{bmatrix}$ = A
+
+I = $\begin{bmatrix}1 & 0 & 0\\0 & 1 & 0\\0 & 0 & 1\end{bmatrix}$
+and I$^{T}$ = $\begin{bmatrix}1 & 0 & 0\\0 & 1 & 0\\0 & 0 & 1\end{bmatrix}$ = I <br/><br/><br/><br/>
+
+
+####LU Decomposition
+
+Write an R function to factorize a square matrix A into LU
+```{r}
+LUDecomposition <- function(matrixA){
+  r <- nrow(matrixA)
+  matrixL <- diag(r)#create an identity matrix of the same size as A
+  matrixU <- matrixA
+  i <- 2
+  j <- 1
+  k <- 1
+  while(k <= r) {
+    while (i <= r) {
+      if (matrixU[i,j]!=0) {
+        multiplier <- (-matrixU[i,j]/matrixU[k,j])
+        matrixL[i,j] <- -multiplier
+            while (j <= r) {
+              matrixU[i,j] <- matrixU[i,j] + matrixU[k,j]*multiplier
+              j <- j+1
+            }
+        }
+          i <- i+1
+          j <- 1
+      }
+    k <- k+1
+    i <- k+1
+    j <- k
+  }
+  matrixList <- list(matrixL,matrixU)
+  return (matrixList)
+}
+```
+
+Test the function with a 3 x 3 matrix
+```{r}
+testA <- matrix(c(2,1,-6,4,-4,-9,-4,3,5),nrow = 3)
+testL <- LUDecomposition(testA)[[1]]
+testU <- LUDecomposition(testA)[[2]]
+testA
+testL
+testU
+testL%*%testU
+```
