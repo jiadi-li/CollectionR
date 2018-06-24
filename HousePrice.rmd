@@ -1,0 +1,219 @@
+####House Prices - Advanced Regression Techniques   
+
+**. Pick one of the quantitative independent variables from the training data set (train.csv) , and define that variable as X.**    
+**. Pick the dependent variable and define it as Y.**    
+```{r}
+#import the dataset
+house_price <- read.csv("https://raw.githubusercontent.com/xiaoxiaogao-DD/store/master/train.csv")
+
+#overview
+head(house_price)
+dim(house_price)
+
+#pick SalePrice as the dependent variable, Y
+Y <- house_price$SalePrice
+summary(Y)
+hist(Y,breaks = 80,main = "Histogram: the property's sale price in dollars")
+
+#pick TotalBsmtSF (Total square feet of basement area) as the quantitative independent variable, X
+X <- house_price$TotalBsmtSF
+summary(X)
+hist(X,breaks = 80,main = "Histogram: total square feet of basement area")
+
+df <- data.frame(X,Y)
+``` 
+<br/><br/>
+
+**Probability**    
+**Calculate as a minimum the below probabilities a through c. Assume the small letter "x" is estimated as the 1st quartile of the X variable, and the small letter "y" is estimated as the 1st quartile of the Y variable. Interpret the meaning of all probabilities. In addition, make a table of counts.**      
+
+```{r}
+quantile(Y)
+quantile(X)
+```
+
+a. P(X>x | Y>y)        
+Calculate the conditional probability of the basement area being greater than 795.75 $ft^2$ given the sale price is greater than $129,975.00.   
+```{r}
+#prepare elements for calculating the probability 
+Y1 <- quantile(Y,0.25)
+X1 <- quantile(X,0.25)
+
+Y1_count <- nrow(subset(df, Y > Y1))
+Y1_X1_count <- nrow(subset(df,(X > X1 & Y > Y1)))
+Y1_X1_count / Y1_count
+```
+
+b. P(X>x, Y>y)    
+Calculate the probability of the basement area being greater than 795.75 $ft^2$ and sale price being greater than $129,975.00.    
+```{r}
+Y1_X1_count <- nrow(subset(df,(X > X1 & Y > Y1)))
+Y1_X1_count / nrow(df)
+```
+
+c. P(X<x | Y<y)      
+Calculate the conditional probability of the basement area being less than 795.75 $ft^2$ given the sale price is less than $129,975.00.   
+```{r}
+Y1_count <- nrow(subset(df, Y < Y1))
+Y1_X1_count <- nrow(subset(df,(X < X1 & Y < Y1)))
+Y1_X1_count / Y1_count
+```
+
+```{r}
+#prepare elements for making a table of counts
+X3 <- quantile(X,0.75)
+Y2 <- quantile(Y,0.5)
+
+a1 <- nrow(subset(df,(Y <= Y2 & X <= X3)))
+a2 <- nrow(subset(df,(Y > Y2 & X <= X3)))
+a3 <- a1 + a2 
+b1 <- nrow(subset(df,(Y <= Y2 & X > X3)))
+b2 <- nrow(subset(df,(Y > Y2 & X >X3)))
+b3 <- b1 + b2
+c1 <- a1 + b1
+c2 <- a2 + b2
+c3 <- c1 + c2
+
+#table of counts: 
+matrix(c(a1,a2,a3,b1,b2,b3,c1,c2,c3),nrow = 3)
+```
+
+**Does splitting the training data in this fashion make them independent? Let A be the new variable counting those observations above the 1st quartile for X, and let B be the new variable counting those observations above the 1st quartile for Y. Does P(AB)=P(A)P(B)? Check mathematically, and then evaluate by running a Chi Square test for association.**        
+
+No, independence doesn't change based on the size or selection of the whole dataset.    
+
+```{r}
+PA <- nrow(subset(df,X > X1))/nrow(df)
+PB <- nrow(subset(df,Y > Y1))/nrow(df)
+PAB <- nrow(subset(df,(X > X1 & Y > Y1)))/nrow(df)
+
+PA*PB == PAB
+```
+P(AB) $\neq$ P(A)P(B).    
+
+Chi-square test for association:    
+```{r}
+chisq.test(matrix(c(a1,a2,b1,b2),ncol = 2))
+```
+<br/><br/>
+**Descriptive and Inferential Statistics**        
+**Provide univariate descriptive statistics and appropriate plots for the training data set. Provide a scatterplot of X and Y. Derive a correlation matrix for any THREE quantitative variables in the dataset. Test the hypotheses that the correlations between each pairwise set of variables is 0 and provide a 92% confidence interval. Discuss the meaning of your analysis. Would you be worried about familywise error? Why or why not?**    
+
+```{r}
+summary(house_price)
+```
+```{r}
+plot(X,Y)
+```
+
+```{r}
+sub_df <- data.frame(house_price$LotArea,house_price$GrLivArea,house_price$GarageArea)
+
+cor(sub_df)
+```
+
+```{r}
+cor.test(house_price$LotArea,house_price$GrLivArea,method = "pearson",conf.level = 0.92)
+```
+
+```{r}
+cor.test(house_price$LotArea,house_price$GarageArea,method = "pearson",conf.level = 0.92)
+```
+
+```{r}
+cor.test(house_price$GarageArea,house_price$GrLivArea,method = "pearson",conf.level = 0.92)
+```
+
+All three confidence intervals have p-values less than 0.5 which means that the null hypothesis could be accepted.  
+For familywise error, it's the probability of making one or more false discoveries, or type I errors when performing multiple hypotheses tests. This problem can be avoid by ajusting the correlation test to a confident level of higher percentage.    
+
+<br/><br/>
+**Linear Algebra and Correlation**    
+**Invert your 3 x 3 correlation matrix from above. (This is known as the precision matrix and contains variance inflation factors on the diagonal.) Multiply the correlation matrix by the precision matrix, and then multiply the precision matrix by the correlation matrix. Conduct LU decomposition on the matrix.**    
+
+```{r}
+cormatrix <- cor(sub_df)
+cormatrix
+
+precisionmatrix <- solve(cormatrix)
+precisionmatrix
+
+#multiply the correlation matrix by the precision matrix
+round(cormatrix %*% precisionmatrix)
+
+#multiply the precision matrix by the correlation matrix
+round(precisionmatrix %*% cormatrix)
+
+library(Matrix)
+#LU decomposition on correlation matrix
+expand(lu(cormatrix))$L
+expand(lu(cormatrix))$U
+
+#LU decomposition on precision matrix
+expand(lu(precisionmatrix))$L
+expand(lu(precisionmatrix))$U
+```
+
+<br/><br/>
+**Calculus-based Probability & Statistics**
+**Many times, it makes sense to fit a closed form distribution to data. For the first variable that you selected which is skewed to the right, shift it so that the minimum value is above zero as necessary. Then load the MASS package and run fitdistr to fit an exponential probability density function. (See https://stat.ethz.ch/R-manual/R-devel/library/MASS/html/fitdistr.html ). Find the optimal value of ?? for this distribution, and then take 1000 samples from this exponential distribution using this value (e.g., rexp(1000, ??)). Plot a histogram and compare it with a histogram of your original variable. Using the exponential pdf, find the 5th and 95th percentiles using the cumulative distribution function (CDF). Also generate a 95% confidence interval from the empirical data, assuming normality. Finally, provide the empirical 5th percentile and 95th percentile of the data. Discuss.**    
+```{r}
+library(MASS)
+
+optimal_lambda <- fitdistr(house_price$TotalBsmtSF,"exponential")
+optimal_lambda$estimate
+
+hist(rexp(1000,optimal_lambda$estimate),breaks = 200,main = "Fitted Exponential PDF",xlim = c(1,quantile(rexp(1000,optimal_lambda$estimate),0.99)))
+
+hist(house_price$TotalBsmtSF,breaks = 400,main = "Observed Basement Area Size",xlim = c(1,quantile(house_price$TotalBsmtSF,0.99)))
+
+#5th and 95th percentiles using CDF
+qexp(0.05,rate = optimal_lambda$estimate,lower.tail = TRUE,log.p = FALSE)
+qexp(0.95,rate = optimal_lambda$estimate,lower.tail = TRUE,log.p = FALSE)
+
+#95% confidence interval from the empirical data (assuming normality)
+Bsmt_mean <- mean(house_price$TotalBsmtSF)
+Bsmt_sd <- sd(house_price$TotalBsmtSF)
+qnorm(0.95,Bsmt_mean,Bsmt_sd)
+
+#empirical 5th and 95th percentile of the data
+quantile(house_price$TotalBsmtSF,c(0.05,0.95))
+```
+
+The exponential simulated model doesn't seem to be a good enough model for this set of house data since the range covers doesn't fit the one generated for the actual data and relatively large bias exists.    
+
+<br/><br/>
+**Modeling**    
+**Build some type of multiple regression model and submit your model to the competition board. Provide your complete model summary and results with analysis. **
+```{r}
+#select all the quantitative variables and eliminate the ones with low correlations (<30%)
+quantitative <- data.frame(house_price$OverallQual,house_price$YearBuilt,house_price$YearRemodAdd,house_price$MasVnrArea,house_price$BsmtFinSF1,house_price$TotalBsmtSF,house_price$X1stFlrSF,house_price$X2ndFlrSF,house_price$GrLivArea,house_price$FullBath,house_price$TotRmsAbvGrd,house_price$Fireplaces,house_price$GarageCars,house_price$GarageArea,house_price$WoodDeckSF,house_price$OpenPorchSF,house_price$SalePrice) 
+
+#to save space, the result of the following command is not displayed
+#cor(quantitative)
+
+#create a linear regression model
+m1 <- lm(house_price.SalePrice ~.,data = quantitative)
+summary(m1)
+```
+
+```{r}
+#eliminate variables based on significant level
+quantitative2 <- data.frame(house_price$OverallQual,house_price$YearRemodAdd,house_price$MasVnrArea,house_price$BsmtFinSF1,house_price$TotalBsmtSF,house_price$Fireplaces,house_price$GarageCars,house_price$WoodDeckSF,house_price$SalePrice)
+colnames(quantitative2) <- c("OverallQual","YearRemodAdd","MasVnrArea","BsmtFinSF1","TotalBsmtSF","Fireplaces","GarageCars","WoodDeckSF","SalePrice")
+
+#create a linear regression model
+m2 <- lm(SalePrice ~.,data = quantitative2)
+summary(m2)
+```
+
+```{r}
+hist(m2$residuals,breaks = 200)
+
+qqnorm(m2$residuals)
+qqline(m2$residuals)
+```
+    
+This model, from the perspective of residuals, is not bad since the residuals are normally distributed, with all dependent variables being statistically significant.   
+
+<br/><br/>
